@@ -53,10 +53,11 @@ export default function Home() {
 
       <div className={'px-4 w-full max-w-md mx-auto'}>
         <form onSubmit={onConvertPress}>
-          <label htmlFor="" className={'block mb-2 text-lg'}>
+          <label htmlFor="unix" className={'block mb-2 text-lg'}>
             Enter a timestamp
           </label>
           <input
+            id="unix"
             type="text"
             className={
               'block w-full px-2 py-1 border border-gray-700 border-solid rounded-md'
@@ -104,7 +105,7 @@ export default function Home() {
                 />
                 <label htmlFor="tz-local" className="ml-3">
                   <span className="block text-sm leading-5 font-medium text-gray-700">
-                    Local Timezone (UTC-{new Date().getTimezoneOffset() / 60})
+                    Local Timezone (UTC{moment().format('Z')})
                   </span>
                 </label>
               </div>
