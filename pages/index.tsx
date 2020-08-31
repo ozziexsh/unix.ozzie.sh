@@ -1,41 +1,58 @@
 import Head from 'next/head';
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
+import UnixForm from '../components/unix-form';
+import DateForm, { DateFormProp } from '../components/date-form';
+import ArrowRightIcon from '../icons/arrow-right-icon';
+import ArrowLeftIcon from '../icons/arrow-left-icon';
+import Result from '../components/result';
 import moment, { Moment } from 'moment';
+import { useRouter } from 'next/router';
+import { NextPageContext } from 'next';
 
-interface ResultProps {
-  label: string;
-  value: string;
+enum Mode {
+  Unix = 'unix',
+  Date = 'date',
 }
 
-function Result({ label, value }: ResultProps) {
-  return (
-    <div className={'mt-4'}>
-      <p className="max-w-2xl text-sm leading-5 text-gray-600">{label}</p>
-      <h3 className="mt-1 text-lg leading-6 font-medium text-gray-900">
-        {value}
-      </h3>
-    </div>
-  );
-}
+const DEFAULT_DATE_FORM = {
+  year: moment().format('YYYY'),
+  month: moment().format('MM'),
+  day: moment().format('DD'),
+  hours: moment().format('HH'),
+  minutes: moment().format('mm'),
+  seconds: moment().format('ss'),
+};
 
-function setTz(date: Moment, isUtc: boolean) {
-  if (isUtc) {
-    return date.clone().utc();
+function setDefaultMode(queryObj: any) {
+  if (queryObj.mode && [Mode.Unix, Mode.Date].includes(queryObj.mode)) {
+    return queryObj.mode;
   }
-  return date.clone();
+  return Mode.Unix;
 }
 
-export default function Home() {
-  const [unixInput, setUnixInput] = useState('');
+export default function Home(props: { mode: Mode }) {
+  const router = useRouter();
+  const [mode, setMode] = useState(props.mode);
   const [resultDate, setResultDate] = useState<Moment | null>(null);
   const [utc, setUtc] = useState(false);
+  const [unixInput, setUnixInput] = useState('');
+  const [form, setForm] = useState<DateFormProp>(DEFAULT_DATE_FORM);
 
-  function onUnixInputChange(e: React.FormEvent<HTMLInputElement>) {
+  function onModeSwap(e: FormEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    const newMode = mode === Mode.Unix ? Mode.Date : Mode.Unix;
+    setMode(newMode);
     setResultDate(null);
-    setUnixInput(e.currentTarget.value);
+    setForm({ ...DEFAULT_DATE_FORM });
+    setUnixInput('');
+    router.replace('/', { query: { mode: newMode } });
   }
 
-  function onConvertPress(e: React.FormEvent<HTMLFormElement>) {
+  function onUnixInputChange(value: string) {
+    setUnixInput(value);
+  }
+
+  function onConvertUnix(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const date = moment.unix(+unixInput);
     if (!unixInput || !date.isValid()) {
@@ -44,29 +61,96 @@ export default function Home() {
     setResultDate(date);
   }
 
+  function onConvertDate(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    let validForm = {
+      year: form.year || DEFAULT_DATE_FORM.year,
+      month: form.month || DEFAULT_DATE_FORM.month,
+      day: form.day || DEFAULT_DATE_FORM.day,
+      hours: form.hours || '00',
+      minutes: form.minutes || '00',
+      seconds: form.seconds || '00',
+    };
+    setForm(validForm);
+    const date = (utc ? moment.utc : moment)(
+      `${validForm.year}-${validForm.month}-${validForm.day} ${validForm.hours}:${validForm.minutes}:${validForm.seconds}`,
+      'YYYY-MM-DD HH:mm:ss',
+    );
+    if (!date.isValid()) {
+      return;
+    }
+    setResultDate(date);
+  }
+
   return (
-    <div className={'h-screen flex flex-col justify-center'}>
+    <div className={'h-screen flex flex-col justify-between'}>
       <Head>
         <title>Unix Time Conversion | ozzie.sh</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
+      <div />
+
       <div className={'px-4 w-full max-w-md mx-auto'}>
-        <form onSubmit={onConvertPress}>
-          <label htmlFor="unix" className={'block mb-2 text-lg'}>
-            Enter a timestamp
-          </label>
-          <input
-            id="unix"
-            type="text"
+        <form onSubmit={mode === Mode.Unix ? onConvertUnix : onConvertDate}>
+          <div
             className={
-              'block w-full px-2 py-1 border border-gray-700 border-solid rounded-md'
+              'flex flex-row justify-center items-center text-center space-x-4 text-4xl mb-8'
             }
-            value={unixInput}
-            onChange={onUnixInputChange}
-          />
+          >
+            <h2>{mode === Mode.Unix ? 'Unix' : 'Date'}</h2>
+            <button
+              className={'w-8 h-8 flex flex-col text-pink-500'}
+              onClick={onModeSwap}
+            >
+              <ArrowRightIcon />
+              <ArrowLeftIcon />
+            </button>
+            <h2 className={'text-gray-600'}>
+              {mode === Mode.Unix ? 'Date' : 'Unix'}
+            </h2>
+          </div>
+          {mode === Mode.Unix ? (
+            <UnixForm value={unixInput} onChange={onUnixInputChange} />
+          ) : (
+            <DateForm value={form} onChange={setForm} />
+          )}
+          <div className="flex flex-row space-x-4 mt-4">
+            <div className="flex items-center">
+              <input
+                id="tz-utc"
+                type="radio"
+                name="local"
+                className="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
+                checked={utc === true}
+                onChange={() => setUtc(true)}
+                tabIndex={0}
+              />
+              <label htmlFor="tz-utc" className="ml-3">
+                <span className="block text-sm leading-5 font-medium text-gray-700">
+                  UTC
+                </span>
+              </label>
+            </div>
+            <div className="flex items-center">
+              <input
+                id="tz-local"
+                name="local"
+                type="radio"
+                className="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
+                checked={utc === false}
+                onChange={() => setUtc(false)}
+                tabIndex={0}
+              />
+              <label htmlFor="tz-local" className="ml-3">
+                <span className="block text-sm leading-5 font-medium text-gray-700">
+                  Local Timezone (UTC{moment().format('Z')})
+                </span>
+              </label>
+            </div>
+          </div>
           <button
-            className={'mt-2 block w-full py-2 bg-black text-white rounded-md'}
+            className={'mt-4 block w-full py-2 bg-black text-white rounded-md'}
             type={'submit'}
           >
             Convert
@@ -76,54 +160,29 @@ export default function Home() {
         {resultDate && (
           <div className={'mt-4'}>
             <hr className={'mb-4'} />
-            <div className="flex flex-row space-x-4">
-              <div className="flex items-center">
-                <input
-                  id="tz-utc"
-                  type="radio"
-                  name="local"
-                  className="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
-                  checked={utc === true}
-                  onChange={() => setUtc(true)}
-                  tabIndex={0}
-                />
-                <label htmlFor="tz-utc" className="ml-3">
-                  <span className="block text-sm leading-5 font-medium text-gray-700">
-                    UTC
-                  </span>
-                </label>
-              </div>
-              <div className="flex items-center">
-                <input
-                  id="tz-local"
-                  name="local"
-                  type="radio"
-                  className="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
-                  checked={utc === false}
-                  onChange={() => setUtc(false)}
-                  tabIndex={0}
-                />
-                <label htmlFor="tz-local" className="ml-3">
-                  <span className="block text-sm leading-5 font-medium text-gray-700">
-                    Local Timezone (UTC{moment().format('Z')})
-                  </span>
-                </label>
-              </div>
-            </div>
             <div className="space-y-4">
+              <Result label={'Unix'} value={`${resultDate.unix()}`} />
               <Result label={'ISO-8601'} value={resultDate.toISOString(!utc)} />
               <Result
                 label={'Human Readable'}
-                value={setTz(resultDate, utc).format(
-                  'MMMM Do, YYYY - hh:mm:ss a',
-                )}
+                value={resultDate.format('MMMM Do, YYYY - hh:mm:ss a')}
               />
             </div>
           </div>
         )}
       </div>
 
-      <style jsx>{``}</style>
+      <div className={'text-center py-2'}>
+        <p className={'text-xs'}>
+          <a href="https://ozzie.sh">Made with ♥ by oz</a>
+        </p>
+      </div>
     </div>
   );
 }
+
+Home.getInitialProps = (ctx: NextPageContext) => {
+  return {
+    mode: setDefaultMode(ctx.query),
+  };
+};
