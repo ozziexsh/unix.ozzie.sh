@@ -103,8 +103,8 @@ export default function Home(props: { mode: Mode }) {
               className={'w-8 h-8 flex flex-col text-pink-500'}
               onClick={onModeSwap}
             >
-              <ArrowRightIcon />
-              <ArrowLeftIcon />
+              <ArrowRightIcon className={'w-8 h-8'} />
+              <ArrowLeftIcon className={'w-8 h-8'} />
             </button>
             <h2 className={'text-gray-600'}>
               {mode === Mode.Unix ? 'Date' : 'Unix'}

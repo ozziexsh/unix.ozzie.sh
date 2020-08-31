@@ -1,10 +1,13 @@
-export default function ArrowLeftIcon() {
+import { SVGAttributes } from 'react';
+
+export default function ArrowLeftIcon(props: SVGAttributes<SVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
+      {...props}
     >
       <path
         strokeLinecap="round"
