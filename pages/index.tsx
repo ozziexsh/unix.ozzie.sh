@@ -92,24 +92,24 @@ export default function Home(props: { mode: Mode }) {
       <div />
 
       <div className={'px-4 w-full max-w-md mx-auto'}>
-        <form onSubmit={mode === Mode.Unix ? onConvertUnix : onConvertDate}>
-          <div
-            className={
-              'flex flex-row justify-center items-center text-center space-x-4 text-4xl mb-8'
-            }
+        <div
+          className={
+            'flex flex-row justify-center items-center text-center space-x-4 text-4xl mb-8'
+          }
+        >
+          <h2>{mode === Mode.Unix ? 'Unix' : 'Date'}</h2>
+          <button
+            className={'w-8 h-8 flex flex-col text-pink-500'}
+            onClick={onModeSwap}
           >
-            <h2>{mode === Mode.Unix ? 'Unix' : 'Date'}</h2>
-            <button
-              className={'w-8 h-8 flex flex-col text-pink-500'}
-              onClick={onModeSwap}
-            >
-              <ArrowRightIcon className={'w-8 h-8'} />
-              <ArrowLeftIcon className={'w-8 h-8'} />
-            </button>
-            <h2 className={'text-gray-600'}>
-              {mode === Mode.Unix ? 'Date' : 'Unix'}
-            </h2>
-          </div>
+            <ArrowRightIcon className={'w-8 h-8'} />
+            <ArrowLeftIcon className={'w-8 h-8'} />
+          </button>
+          <h2 className={'text-gray-600'}>
+            {mode === Mode.Unix ? 'Date' : 'Unix'}
+          </h2>
+        </div>
+        <form onSubmit={mode === Mode.Unix ? onConvertUnix : onConvertDate}>
           {mode === Mode.Unix ? (
             <UnixForm value={unixInput} onChange={onUnixInputChange} />
           ) : (
@@ -151,7 +151,7 @@ export default function Home(props: { mode: Mode }) {
           </div>
           <button
             className={'mt-4 block w-full py-2 bg-black text-white rounded-md'}
-            type={'submit'}
+            type={'button'}
           >
             Convert
           </button>
