@@ -13,9 +13,8 @@ function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       type="text"
-      className={
-        'block w-full px-2 py-1 border border-gray-700 border-solid rounded-md'
-      }
+      className={'px-2 py-1 border border-gray-700 border-solid rounded-md'}
+      style={{ minWidth: 0 }}
       {...props}
     />
   );
