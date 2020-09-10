@@ -151,7 +151,7 @@ export default function Home(props: { mode: Mode }) {
           </div>
           <button
             className={'mt-4 block w-full py-2 bg-black text-white rounded-md'}
-            type={'button'}
+            type={'submit'}
           >
             Convert
           </button>
