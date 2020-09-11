@@ -35,6 +35,7 @@ export default function Home(props: { mode: Mode }) {
   const [mode, setMode] = useState(props.mode);
   const [resultDate, setResultDate] = useState<Moment | null>(null);
   const [utc, setUtc] = useState(false);
+  const [resultUtc, setResultUtc] = useState(false);
   const [unixInput, setUnixInput] = useState('');
   const [form, setForm] = useState<DateFormProp>(DEFAULT_DATE_FORM);
 
@@ -55,9 +56,13 @@ export default function Home(props: { mode: Mode }) {
   function onConvertUnix(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const date = moment.unix(+unixInput);
+    if (utc) {
+      date.utc();
+    }
     if (!unixInput || !date.isValid()) {
       return;
     }
+    setResultUtc(utc);
     setResultDate(date);
   }
 
@@ -79,6 +84,7 @@ export default function Home(props: { mode: Mode }) {
     if (!date.isValid()) {
       return;
     }
+    setResultUtc(utc);
     setResultDate(date);
   }
 
@@ -162,7 +168,10 @@ export default function Home(props: { mode: Mode }) {
             <hr className={'mb-4'} />
             <div className="space-y-4">
               <Result label={'Unix'} value={`${resultDate.unix()}`} />
-              <Result label={'ISO-8601'} value={resultDate.toISOString(!utc)} />
+              <Result
+                label={'ISO-8601'}
+                value={resultDate.toISOString(!resultUtc)}
+              />
               <Result
                 label={'Human Readable'}
                 value={resultDate.format('MMMM Do, YYYY - hh:mm:ss a')}
